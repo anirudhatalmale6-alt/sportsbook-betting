@@ -40,7 +40,73 @@
 }
 
 @layer components {
-  /* Odds button */
+  /* === Jilbet Navbar === */
+  .jilbet-nav-link {
+    @apply px-4 py-2 text-sm font-medium text-gray-300 hover:text-white
+           transition-colors duration-150 relative flex items-center gap-1.5;
+  }
+
+  .live-dot {
+    @apply w-2 h-2 bg-red-500 rounded-full inline-block;
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* === Sidebar sport item (Jilbet style) === */
+  .sidebar-sport-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer
+           text-gray-400 hover:text-white hover:bg-dark-400/40
+           transition-all duration-150;
+  }
+
+  .sidebar-sport-item.active {
+    @apply text-white bg-dark-400/60;
+  }
+
+  /* === Featured card (Jilbet style) === */
+  .jilbet-featured-card {
+    @apply rounded-xl overflow-hidden flex-shrink-0 snap-start
+           border border-dark-300/20 hover:border-primary-500/30
+           transition-all duration-300;
+    min-width: 300px;
+    background: linear-gradient(135deg, #1e1e1e 0%, #151515 100%);
+  }
+
+  /* === Odds cell inside featured card === */
+  .jilbet-odds-cell {
+    @apply flex items-center justify-center gap-1 py-2.5 px-3
+           hover:bg-dark-400/40 transition-colors cursor-pointer;
+  }
+
+  .jilbet-odds-cell.active {
+    @apply bg-primary-700/40;
+  }
+
+  /* === Time filter box (Jilbet style) === */
+  .jilbet-time-box {
+    @apply flex flex-col items-center justify-center px-5 py-3
+           bg-dark-500 border border-dark-300/30 rounded-lg
+           cursor-pointer transition-all duration-150 min-w-[120px];
+  }
+
+  .jilbet-time-box.active {
+    @apply bg-dark-400 border-primary-500/40;
+  }
+
+  .jilbet-time-box:not(.active) {
+    @apply hover:bg-dark-400/60 hover:border-dark-200/40;
+  }
+
+  /* === Promo banner (Jilbet style) === */
+  .jilbet-promo-banner {
+    @apply rounded-xl overflow-hidden border border-dark-300/20;
+  }
+
+  /* === Odds button (kept for other pages) === */
   .odds-btn {
     @apply flex flex-col items-center justify-center px-3 py-2 rounded-md
            bg-dark-400 hover:bg-dark-300 border border-dark-200/30
@@ -67,7 +133,7 @@
     @apply text-white;
   }
 
-  /* Sport item in sidebar */
+  /* === Sport item in sidebar (legacy, kept for compat) === */
   .sport-item {
     @apply flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer
            text-gray-400 hover:text-white hover:bg-dark-400/60
@@ -92,14 +158,14 @@
            hover:border-dark-200/60 transition-all duration-200;
   }
 
-  /* Featured card */
+  /* Featured card (legacy) */
   .featured-card {
     @apply bg-gradient-to-br from-dark-500 to-dark-600 rounded-xl border border-dark-300/30
            overflow-hidden min-w-[280px] snap-start flex-shrink-0
            hover:border-primary-500/30 transition-all duration-300;
   }
 
-  /* Nav link */
+  /* Nav link (legacy) */
   .nav-link {
     @apply px-4 py-2 text-sm font-medium text-gray-400 hover:text-white
            transition-colors duration-150 relative;
@@ -125,13 +191,13 @@
     @apply w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse inline-block;
   }
 
-  /* Promo banner */
+  /* Promo banner (legacy) */
   .promo-banner {
     @apply rounded-xl overflow-hidden relative bg-gradient-to-r from-primary-900 to-dark-500
            border border-primary-700/30;
   }
 
-  /* Time filter tab */
+  /* Time filter tab (legacy) */
   .time-tab {
     @apply px-4 py-1.5 rounded-full text-xs font-medium cursor-pointer
            transition-all duration-150;

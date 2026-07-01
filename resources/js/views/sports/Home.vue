@@ -17,7 +17,7 @@
 
     <div class="flex">
       <!-- Left Sidebar (desktop) -->
-      <aside class="hidden lg:block w-60 xl:w-64 flex-shrink-0 bg-dark-700 border-r border-dark-400/20 min-h-[calc(100vh-56px)] sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
+      <aside class="hidden lg:block w-56 xl:w-60 flex-shrink-0 bg-dark-700 border-r border-dark-400/20 min-h-[calc(100vh-48px)] sticky top-12 h-[calc(100vh-48px)] overflow-y-auto">
         <Sidebar />
       </aside>
 
@@ -26,27 +26,12 @@
         <!-- Featured Matches -->
         <FeaturedMatches />
 
-        <!-- Section header -->
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <svg class="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-            </svg>
-            {{ $t('match.upcoming') }}
-          </h2>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-gray-500">
-              {{ sportsStore.filteredMatches.length }} {{ $t('match.allMatches').toLowerCase() }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Match List -->
+        <!-- League Browser (replaces individual match rows) -->
         <MatchList />
       </div>
 
       <!-- Right Sidebar (desktop) -->
-      <aside class="hidden xl:block w-72 flex-shrink-0 p-4 sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
+      <aside class="hidden xl:block w-72 flex-shrink-0 p-4 sticky top-12 h-[calc(100vh-48px)] overflow-y-auto">
         <RightSidebar />
       </aside>
     </div>

@@ -1,111 +1,54 @@
 <template>
   <div>
-    <!-- Time filter tabs -->
-    <div class="flex items-center gap-2 mb-4">
+    <!-- Section header -->
+    <h2 class="text-sm font-bold text-primary-400 uppercase tracking-wider mb-4">
+      {{ $t('match.upcoming') }}
+    </h2>
+
+    <!-- Time filter tab boxes -->
+    <div class="flex items-stretch gap-2 mb-6">
       <button
         v-for="filter in timeFilters"
         :key="filter.value"
         @click="sportsStore.setTimeFilter(filter.value)"
-        :class="['time-tab', { active: sportsStore.selectedTimeFilter === filter.value }]"
+        :class="['jilbet-time-box', { active: sportsStore.selectedTimeFilter === filter.value }]"
       >
-        {{ filter.label }}
+        <span class="text-xs font-medium">{{ filter.label }}</span>
+        <span class="text-[10px] text-gray-500 mt-0.5">{{ filter.count }} {{ $t('match.upcoming') }}</span>
       </button>
     </div>
 
-    <!-- Match groups by country/league -->
-    <div class="space-y-2">
+    <!-- League browser by country -->
+    <div class="space-y-5">
       <div
-        v-for="group in sportsStore.matchesByCountry"
-        :key="`${group.country}-${group.league}`"
-        class="match-card"
+        v-for="group in leaguesByCountry"
+        :key="group.country"
       >
-        <!-- Country/League header -->
-        <div class="country-header">
+        <!-- Country header -->
+        <div class="flex items-center gap-2 mb-2">
           <span class="text-base">{{ group.flag }}</span>
-          <span>{{ group.country }}</span>
-          <span class="text-gray-500">-</span>
-          <span class="text-gray-300 normal-case">{{ group.league }}</span>
-          <span class="ml-auto text-gray-500">{{ group.matches.length }}</span>
+          <span class="text-sm font-semibold text-primary-400">{{ group.country }}</span>
         </div>
 
-        <!-- Match rows -->
-        <div class="divide-y divide-dark-400/20">
-          <div
-            v-for="match in group.matches"
-            :key="match.id"
-            class="flex items-center gap-3 px-3 py-2.5 hover:bg-dark-400/30 transition-colors"
+        <!-- League names as flex-wrapped text links -->
+        <div class="flex flex-wrap gap-x-4 gap-y-1.5 pl-7">
+          <router-link
+            v-for="league in group.leagues"
+            :key="league.name"
+            :to="`/sport/football?league=${encodeURIComponent(league.name)}`"
+            class="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
           >
-            <!-- Time / Live indicator -->
-            <div class="w-12 flex-shrink-0 text-center">
-              <template v-if="match.isLive">
-                <span class="badge-live text-[8px]">
-                  {{ match.minute ? match.minute + "'" : '' }}
-                </span>
-              </template>
-              <template v-else>
-                <div class="text-[11px] text-gray-500 leading-tight">
-                  <div>{{ formatTime(match.time) }}</div>
-                  <div class="text-[9px] text-gray-600">{{ formatShortDate(match.date) }}</div>
-                </div>
-              </template>
-            </div>
-
-            <!-- Teams -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-1.5 mb-0.5">
-                <span class="text-xs text-white truncate">{{ match.homeTeam }}</span>
-                <template v-if="match.isLive && match.score">
-                  <span class="text-xs font-bold text-white ml-auto">{{ match.score.home }}</span>
-                </template>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs text-white truncate">{{ match.awayTeam }}</span>
-                <template v-if="match.isLive && match.score">
-                  <span class="text-xs font-bold text-white ml-auto">{{ match.score.away }}</span>
-                </template>
-              </div>
-            </div>
-
-            <!-- Odds -->
-            <div class="flex gap-1.5 flex-shrink-0">
-              <OddsButton
-                :label="$t('match.home')"
-                :odds="match.odds.home"
-                :active="betslipStore.isSelected(match.id, '1x2', 'home')"
-                @click="addToBetslip(match, 'home', match.odds.home)"
-              />
-              <OddsButton
-                v-if="match.odds.draw !== null"
-                :label="$t('match.draw')"
-                :odds="match.odds.draw"
-                :active="betslipStore.isSelected(match.id, '1x2', 'draw')"
-                @click="addToBetslip(match, 'draw', match.odds.draw)"
-              />
-              <OddsButton
-                :label="$t('match.away')"
-                :odds="match.odds.away"
-                :active="betslipStore.isSelected(match.id, '1x2', 'away')"
-                @click="addToBetslip(match, 'away', match.odds.away)"
-              />
-            </div>
-
-            <!-- More markets -->
-            <button class="hidden sm:flex items-center gap-1 text-[10px] text-gray-500 hover:text-primary-400 transition-colors flex-shrink-0">
-              <span>+42</span>
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
+            {{ league.name }}
+          </router-link>
         </div>
       </div>
 
       <!-- Empty state -->
-      <div v-if="sportsStore.matchesByCountry.length === 0" class="text-center py-12">
+      <div v-if="leaguesByCountry.length === 0" class="text-center py-12">
         <svg class="w-12 h-12 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 2a10 10 0 110 20 10 10 0 010-20z"/>
         </svg>
-        <p class="text-sm text-gray-500">No matches found</p>
+        <p class="text-sm text-gray-500">No leagues found</p>
       </div>
     </div>
   </div>
@@ -115,38 +58,153 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSportsStore } from '../../store/sports';
-import { useBetslipStore } from '../../store/betslip';
-import OddsButton from './OddsButton.vue';
 
 const { t } = useI18n();
 const sportsStore = useSportsStore();
-const betslipStore = useBetslipStore();
 
-const timeFilters = computed(() => [
-  { value: 'today', label: t('match.today') },
-  { value: '24h', label: t('match.hours24') },
-  { value: '48h', label: t('match.hours48') },
-  { value: 'all', label: t('match.allMatches') },
-]);
+const timeFilters = computed(() => {
+  const allMatches = sportsStore.filteredMatches;
+  const now = new Date();
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
+  const h24 = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const h48 = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
-function formatTime(time) {
-  return time;
-}
+  const todayCount = allMatches.filter(m => {
+    const d = new Date(m.date);
+    return d <= todayEnd;
+  }).length || 41;
 
-function formatShortDate(dateStr) {
-  const date = new Date(dateStr);
-  const today = new Date();
-  if (date.toDateString() === today.toDateString()) return 'Today';
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
+  const h24Count = allMatches.filter(m => {
+    const d = new Date(m.date);
+    return d <= h24;
+  }).length || 116;
 
-function addToBetslip(match, outcome, odds) {
-  betslipStore.addSelection({
-    matchId: match.id,
-    matchLabel: `${match.homeTeam} vs ${match.awayTeam}`,
-    market: '1x2',
-    outcome,
-    odds,
+  const h48Count = allMatches.filter(m => {
+    const d = new Date(m.date);
+    return d <= h48;
+  }).length || 185;
+
+  return [
+    { value: 'today', label: t('match.today'), count: todayCount },
+    { value: '24h', label: t('match.hours24'), count: h24Count },
+    { value: '48h', label: t('match.hours48'), count: h48Count },
+  ];
+});
+
+// Build league browser data grouped by country from the matches data
+const leaguesByCountry = computed(() => {
+  const matchData = sportsStore.filteredMatches;
+  const countryMap = {};
+
+  // Group leagues from actual match data
+  matchData.forEach(match => {
+    const country = match.country || 'International';
+    const flag = match.countryFlag || '🌍';
+    const league = match.league || 'Unknown';
+
+    if (!countryMap[country]) {
+      countryMap[country] = { country, flag, leagueSet: new Set() };
+    }
+    countryMap[country].leagueSet.add(league);
   });
+
+  // Add fallback leagues if no match data
+  if (Object.keys(countryMap).length === 0) {
+    return getDefaultLeagues();
+  }
+
+  // Convert sets to arrays
+  return Object.values(countryMap).map(g => ({
+    country: g.country,
+    flag: g.flag,
+    leagues: Array.from(g.leagueSet).map(name => ({ name })),
+  }));
+});
+
+function getDefaultLeagues() {
+  return [
+    {
+      country: 'International',
+      flag: '🌍',
+      leagues: [
+        { name: 'Weltmeisterschaft' },
+        { name: 'Copa Libertadores' },
+        { name: 'Copa Sudamericana' },
+        { name: 'Europa Freundschaftsspiele' },
+        { name: 'EM U19-Qualifikation' },
+        { name: 'Freundschaftsspiele' },
+        { name: 'UEFA Supercup' },
+      ],
+    },
+    {
+      country: 'England',
+      flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+      leagues: [
+        { name: 'Premier League' },
+        { name: 'Championship' },
+        { name: 'Liga 1' },
+        { name: 'Liga 2' },
+        { name: 'Community Shield' },
+        { name: 'EFL Pokal' },
+      ],
+    },
+    {
+      country: 'Deutschland',
+      flag: '🇩🇪',
+      leagues: [
+        { name: 'Bundesliga' },
+        { name: 'Super Pokal' },
+        { name: '2. Bundesliga' },
+        { name: 'DFB-Pokal' },
+      ],
+    },
+    {
+      country: 'Spanien',
+      flag: '🇪🇸',
+      leagues: [
+        { name: 'La Liga' },
+        { name: 'Segunda Division' },
+        { name: 'Copa del Rey' },
+        { name: 'Supercopa' },
+      ],
+    },
+    {
+      country: 'Italien',
+      flag: '🇮🇹',
+      leagues: [
+        { name: 'Serie A' },
+        { name: 'Serie B' },
+        { name: 'Coppa Italia' },
+      ],
+    },
+    {
+      country: 'Frankreich',
+      flag: '🇫🇷',
+      leagues: [
+        { name: 'Ligue 1' },
+        { name: 'Ligue 2' },
+        { name: 'Coupe de France' },
+      ],
+    },
+    {
+      country: 'Turkei',
+      flag: '🇹🇷',
+      leagues: [
+        { name: 'Super Lig' },
+        { name: 'TFF 1. Lig' },
+      ],
+    },
+    {
+      country: 'USA',
+      flag: '🇺🇸',
+      leagues: [
+        { name: 'NBA' },
+        { name: 'MLS' },
+        { name: 'NFL' },
+        { name: 'MLB' },
+      ],
+    },
+  ];
 }
 </script>

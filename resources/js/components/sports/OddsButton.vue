@@ -18,7 +18,7 @@ const props = defineProps({
   },
   odds: {
     type: Number,
-    required: true,
+    default: null,
   },
   active: {
     type: Boolean,
@@ -33,6 +33,7 @@ const props = defineProps({
 defineEmits(['click']);
 
 const formattedOdds = computed(() => {
+  if (props.odds == null || isNaN(props.odds)) return '-';
   const oddsFormat = localStorage.getItem('odds_format') || 'decimal';
 
   if (oddsFormat === 'fractional') {

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'odds_api' => [
+        'key' => env('ODDS_API_KEY', ''),
+        'base_url' => env('ODDS_API_BASE_URL', 'https://api.the-odds-api.com/v4'),
+    ],
+
 ];

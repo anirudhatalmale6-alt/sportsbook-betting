@@ -9,7 +9,7 @@ class Market extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['match_id', 'name', 'is_active'];
+    protected $fillable = ['match_id', 'name', 'bookmaker', 'is_active'];
 
     protected function casts(): array
     {

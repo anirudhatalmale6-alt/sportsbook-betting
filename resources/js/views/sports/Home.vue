@@ -10,7 +10,7 @@
           :class="['mobile-sport-pill', { active: sportsStore.selectedSport === sport.id }]"
         >
           <span class="pill-icon">{{ sport.icon }}</span>
-          <span>{{ $t(`sports.${sport.id}`) }}</span>
+          <span>{{ sport.name }}</span>
         </button>
       </div>
     </div>
@@ -54,11 +54,21 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
 import { useSportsStore } from '../../store/sports';
+import { useAuthStore } from '../../store/auth';
 import Sidebar from '../../components/layout/Sidebar.vue';
 import RightSidebar from '../../components/layout/RightSidebar.vue';
 import FeaturedMatches from '../../components/sports/FeaturedMatches.vue';
 import MatchList from '../../components/sports/MatchList.vue';
 
 const sportsStore = useSportsStore();
+const authStore = useAuthStore();
+
+onMounted(async () => {
+  await sportsStore.init();
+  if (authStore.token) {
+    await authStore.fetchUser();
+  }
+});
 </script>

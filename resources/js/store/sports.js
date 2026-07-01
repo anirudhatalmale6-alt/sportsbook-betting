@@ -1,11 +1,16 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import axios from 'axios';
+
+const API_BASE = '/api';
 
 export const useSportsStore = defineStore('sports', () => {
-  const selectedSport = ref('football');
-  const selectedTimeFilter = ref('today');
+  const selectedSport = ref('all');
+  const selectedTimeFilter = ref('all');
   const searchQuery = ref('');
   const favorites = ref(JSON.parse(localStorage.getItem('sport_favorites') || '[]'));
+  const loading = ref(false);
+  const error = ref(null);
 
   const sports = ref([
     { id: 'football', name: 'Football', icon: '⚽', count: 342 },
@@ -22,286 +27,151 @@ export const useSportsStore = defineStore('sports', () => {
     { id: 'baseball', name: 'Baseball', icon: '⚾', count: 38 },
   ]);
 
-  const featuredMatches = ref([
-    {
-      id: 'f1',
-      homeTeam: 'Real Madrid',
-      awayTeam: 'FC Barcelona',
-      homeFlag: '🇪🇸',
-      awayFlag: '🇪🇸',
-      league: 'La Liga',
-      country: 'Spain',
-      date: '2026-07-02',
-      time: '21:00',
-      odds: { home: 2.10, draw: 3.40, away: 3.25 },
-      isLive: false,
-      minute: null,
-      score: null,
-    },
-    {
-      id: 'f2',
-      homeTeam: 'Manchester City',
-      awayTeam: 'Liverpool FC',
-      homeFlag: '🇬🇧',
-      awayFlag: '🇬🇧',
-      league: 'Premier League',
-      country: 'England',
-      date: '2026-07-02',
-      time: '17:30',
-      odds: { home: 1.95, draw: 3.60, away: 3.50 },
-      isLive: true,
-      minute: 67,
-      score: { home: 2, away: 1 },
-    },
-    {
-      id: 'f3',
-      homeTeam: 'Bayern Munich',
-      awayTeam: 'Borussia Dortmund',
-      homeFlag: '🇩🇪',
-      awayFlag: '🇩🇪',
-      league: 'Bundesliga',
-      country: 'Germany',
-      date: '2026-07-03',
-      time: '18:30',
-      odds: { home: 1.65, draw: 4.00, away: 4.75 },
-      isLive: false,
-      minute: null,
-      score: null,
-    },
-    {
-      id: 'f4',
-      homeTeam: 'Paris Saint-Germain',
-      awayTeam: 'Olympique Marseille',
-      homeFlag: '🇫🇷',
-      awayFlag: '🇫🇷',
-      league: 'Ligue 1',
-      country: 'France',
-      date: '2026-07-03',
-      time: '21:00',
-      odds: { home: 1.45, draw: 4.50, away: 6.00 },
-      isLive: false,
-      minute: null,
-      score: null,
-    },
-    {
-      id: 'f5',
-      homeTeam: 'Juventus',
-      awayTeam: 'AC Milan',
-      homeFlag: '🇮🇹',
-      awayFlag: '🇮🇹',
-      league: 'Serie A',
-      country: 'Italy',
-      date: '2026-07-02',
-      time: '20:45',
-      odds: { home: 2.30, draw: 3.20, away: 2.90 },
-      isLive: false,
-      minute: null,
-      score: null,
-    },
-  ]);
+  const featuredMatches = ref([]);
+  const matches = ref([]);
+  const liveMatches = ref([]);
 
-  const matches = ref([
-    // England - Premier League
-    {
-      id: 'm1',
-      homeTeam: 'Arsenal',
-      awayTeam: 'Chelsea',
-      league: 'Premier League',
-      country: 'England',
-      countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-      date: '2026-07-02',
-      time: '15:00',
-      odds: { home: 1.80, draw: 3.70, away: 4.20 },
-      isLive: false,
-      sport: 'football',
-    },
-    {
-      id: 'm2',
-      homeTeam: 'Tottenham',
-      awayTeam: 'Manchester United',
-      league: 'Premier League',
-      country: 'England',
-      countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-      date: '2026-07-02',
-      time: '17:30',
-      odds: { home: 2.40, draw: 3.30, away: 2.80 },
-      isLive: false,
-      sport: 'football',
-    },
-    {
-      id: 'm3',
-      homeTeam: 'Newcastle',
-      awayTeam: 'Aston Villa',
-      league: 'Premier League',
-      country: 'England',
-      countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-      date: '2026-07-02',
-      time: '15:00',
-      odds: { home: 1.90, draw: 3.50, away: 3.80 },
-      isLive: false,
-      sport: 'football',
-    },
-    // Spain - La Liga
-    {
-      id: 'm4',
-      homeTeam: 'Atletico Madrid',
-      awayTeam: 'Sevilla',
-      league: 'La Liga',
-      country: 'Spain',
-      countryFlag: '🇪🇸',
-      date: '2026-07-02',
-      time: '19:00',
-      odds: { home: 1.55, draw: 4.00, away: 5.50 },
-      isLive: false,
-      sport: 'football',
-    },
-    {
-      id: 'm5',
-      homeTeam: 'Real Sociedad',
-      awayTeam: 'Valencia',
-      league: 'La Liga',
-      country: 'Spain',
-      countryFlag: '🇪🇸',
-      date: '2026-07-02',
-      time: '21:00',
-      odds: { home: 2.05, draw: 3.30, away: 3.40 },
-      isLive: false,
-      sport: 'football',
-    },
-    // Germany - Bundesliga
-    {
-      id: 'm6',
-      homeTeam: 'RB Leipzig',
-      awayTeam: 'Bayer Leverkusen',
-      league: 'Bundesliga',
-      country: 'Germany',
-      countryFlag: '🇩🇪',
-      date: '2026-07-02',
-      time: '18:30',
-      odds: { home: 2.60, draw: 3.40, away: 2.55 },
-      isLive: true,
-      minute: 34,
-      score: { home: 1, away: 0 },
-      sport: 'football',
-    },
-    {
-      id: 'm7',
-      homeTeam: 'Wolfsburg',
-      awayTeam: 'Eintracht Frankfurt',
-      league: 'Bundesliga',
-      country: 'Germany',
-      countryFlag: '🇩🇪',
-      date: '2026-07-03',
-      time: '15:30',
-      odds: { home: 2.20, draw: 3.30, away: 3.10 },
-      isLive: false,
-      sport: 'football',
-    },
-    // Italy - Serie A
-    {
-      id: 'm8',
-      homeTeam: 'Inter Milan',
-      awayTeam: 'Napoli',
-      league: 'Serie A',
-      country: 'Italy',
-      countryFlag: '🇮🇹',
-      date: '2026-07-03',
-      time: '20:45',
-      odds: { home: 1.85, draw: 3.60, away: 3.90 },
-      isLive: false,
-      sport: 'football',
-    },
-    {
-      id: 'm9',
-      homeTeam: 'AS Roma',
-      awayTeam: 'Lazio',
-      league: 'Serie A',
-      country: 'Italy',
-      countryFlag: '🇮🇹',
-      date: '2026-07-03',
-      time: '18:00',
-      odds: { home: 2.15, draw: 3.20, away: 3.30 },
-      isLive: false,
-      sport: 'football',
-    },
-    // France - Ligue 1
-    {
-      id: 'm10',
-      homeTeam: 'Lyon',
-      awayTeam: 'Monaco',
-      league: 'Ligue 1',
-      country: 'France',
-      countryFlag: '🇫🇷',
-      date: '2026-07-02',
-      time: '21:00',
-      odds: { home: 2.40, draw: 3.30, away: 2.80 },
-      isLive: false,
-      sport: 'football',
-    },
-    // Turkey - Super Lig
-    {
-      id: 'm11',
-      homeTeam: 'Galatasaray',
-      awayTeam: 'Fenerbahce',
-      league: 'Super Lig',
-      country: 'Turkey',
-      countryFlag: '🇹🇷',
-      date: '2026-07-02',
-      time: '20:00',
-      odds: { home: 2.00, draw: 3.40, away: 3.50 },
-      isLive: false,
-      sport: 'football',
-    },
-    // Basketball
-    {
-      id: 'm12',
-      homeTeam: 'LA Lakers',
-      awayTeam: 'Boston Celtics',
-      league: 'NBA',
-      country: 'USA',
-      countryFlag: '🇺🇸',
-      date: '2026-07-02',
-      time: '02:00',
-      odds: { home: 1.75, draw: null, away: 2.10 },
-      isLive: false,
-      sport: 'basketball',
-    },
-    {
-      id: 'm13',
-      homeTeam: 'Golden State Warriors',
-      awayTeam: 'Miami Heat',
-      league: 'NBA',
-      country: 'USA',
-      countryFlag: '🇺🇸',
-      date: '2026-07-02',
-      time: '04:30',
-      odds: { home: 1.90, draw: null, away: 1.95 },
-      isLive: false,
-      sport: 'basketball',
-    },
-    // Tennis
-    {
-      id: 'm14',
-      homeTeam: 'C. Alcaraz',
-      awayTeam: 'J. Sinner',
-      league: 'Wimbledon',
-      country: 'International',
-      countryFlag: '🎾',
-      date: '2026-07-02',
-      time: '14:00',
-      odds: { home: 1.85, draw: null, away: 1.95 },
-      isLive: true,
-      minute: null,
-      set: '2nd Set',
-      score: { home: '6-4, 3-2', away: '4-6, 2-3' },
-      sport: 'tennis',
-    },
-  ]);
+  const sportIconMap = {
+    'Football': '⚽', 'Basketball': '🏀', 'Volleyball': '🏐',
+    'Tennis': '🎾', 'Formula 1': '🏎️', 'Combat Sports': '🥊',
+    'Table Tennis': '🏓', 'Netball': '🤾', 'Handball': '🤾‍♂️',
+    'American Football': '🏈', 'Baseball': '⚾', 'Horse Racing': '🏇',
+    'WM 2026': '🏆', 'Cricket': '🏏', 'Ice Hockey': '🏒',
+  };
+
+  const countryFlagMap = {
+    'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Germany': '🇩🇪', 'Spain': '🇪🇸', 'Italy': '🇮🇹',
+    'France': '🇫🇷', 'Turkey': '🇹🇷', 'USA': '🇺🇸', 'Brazil': '🇧🇷',
+    'Australia': '🇦🇺', 'International': '🌍', 'Portugal': '🇵🇹',
+    'Netherlands': '🇳🇱', 'Belgium': '🇧🇪', 'Argentina': '🇦🇷',
+    'Mexico': '🇲🇽', 'Japan': '🇯🇵', 'South Korea': '🇰🇷',
+  };
+
+  async function fetchSports() {
+    try {
+      const { data } = await axios.get(`${API_BASE}/sports`);
+      if (data.data && data.data.length > 0) {
+        sports.value = data.data.map(s => ({
+          id: s.slug,
+          dbId: s.id,
+          name: s.name,
+          icon: sportIconMap[s.name] || '🏅',
+          count: s.matches_count || 0,
+        }));
+      }
+    } catch (e) {
+      console.warn('Using fallback sports data');
+    }
+  }
+
+  async function fetchFeaturedMatches() {
+    try {
+      const { data } = await axios.get(`${API_BASE}/matches/featured`);
+      if (data.data) {
+        featuredMatches.value = data.data.map(mapMatchFromApi);
+      }
+    } catch (e) {
+      console.warn('Using fallback featured matches');
+      featuredMatches.value = getFallbackFeatured();
+    }
+  }
+
+  async function fetchMatches(params = {}) {
+    loading.value = true;
+    try {
+      const queryParams = {};
+      if (selectedSport.value && selectedSport.value !== 'all') {
+        const sport = sports.value.find(s => s.id === selectedSport.value);
+        if (sport && sport.dbId) queryParams.sport = sport.dbId;
+      }
+      if (selectedTimeFilter.value === 'today') queryParams.date = 'today';
+      else if (selectedTimeFilter.value === '24h') queryParams.date = '24h';
+      else if (selectedTimeFilter.value === '48h') queryParams.date = '48h';
+
+      const { data } = await axios.get(`${API_BASE}/matches`, { params: queryParams });
+      if (data.data) {
+        matches.value = data.data.map(mapMatchFromApi);
+      }
+    } catch (e) {
+      console.warn('Using fallback matches');
+      matches.value = getFallbackMatches();
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchLiveMatches() {
+    try {
+      const { data } = await axios.get(`${API_BASE}/matches/live`);
+      if (data.data) {
+        liveMatches.value = data.data.map(mapMatchFromApi);
+      }
+    } catch (e) {
+      console.warn('No live matches available');
+    }
+  }
+
+  function mapMatchFromApi(m) {
+    const league = m.league || {};
+    const sport = league.sport || {};
+    const country = league.country || {};
+    const markets = m.markets || [];
+    const h2hMarket = markets.find(mk => mk.name === '1X2' || mk.name === 'Match Winner') || markets[0];
+    const odds = { home: null, draw: null, away: null };
+
+    if (h2hMarket && h2hMarket.odds) {
+      h2hMarket.odds.forEach(o => {
+        if (o.label === '1') odds.home = parseFloat(o.value);
+        else if (o.label === 'X') odds.draw = parseFloat(o.value);
+        else if (o.label === '2') odds.away = parseFloat(o.value);
+      });
+    }
+
+    const startTime = new Date(m.start_time);
+    return {
+      id: m.id,
+      homeTeam: m.home_team,
+      awayTeam: m.away_team,
+      league: league.name || 'Unknown',
+      country: country.name || 'International',
+      countryFlag: countryFlagMap[country.name] || '🌍',
+      date: startTime.toISOString().split('T')[0],
+      time: startTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      odds,
+      isLive: m.status === 'live',
+      minute: m.status === 'live' ? Math.floor((Date.now() - startTime.getTime()) / 60000) : null,
+      score: (m.score_home !== null && m.score_away !== null) ? { home: m.score_home, away: m.score_away } : null,
+      sport: sport.slug || 'football',
+      markets,
+    };
+  }
+
+  function getFallbackFeatured() {
+    return [
+      { id: 'f1', homeTeam: 'Real Madrid', awayTeam: 'FC Barcelona', homeFlag: '🇪🇸', awayFlag: '🇪🇸', league: 'La Liga', country: 'Spain', date: '2026-07-02', time: '21:00', odds: { home: 2.10, draw: 3.40, away: 3.25 }, isLive: false, minute: null, score: null },
+      { id: 'f2', homeTeam: 'Manchester City', awayTeam: 'Liverpool FC', homeFlag: '🇬🇧', awayFlag: '🇬🇧', league: 'Premier League', country: 'England', date: '2026-07-02', time: '17:30', odds: { home: 1.95, draw: 3.60, away: 3.50 }, isLive: true, minute: 67, score: { home: 2, away: 1 } },
+      { id: 'f3', homeTeam: 'Bayern Munich', awayTeam: 'Borussia Dortmund', homeFlag: '🇩🇪', awayFlag: '🇩🇪', league: 'Bundesliga', country: 'Germany', date: '2026-07-03', time: '18:30', odds: { home: 1.65, draw: 4.00, away: 4.75 }, isLive: false, minute: null, score: null },
+      { id: 'f4', homeTeam: 'Paris Saint-Germain', awayTeam: 'Olympique Marseille', homeFlag: '🇫🇷', awayFlag: '🇫🇷', league: 'Ligue 1', country: 'France', date: '2026-07-03', time: '21:00', odds: { home: 1.45, draw: 4.50, away: 6.00 }, isLive: false, minute: null, score: null },
+      { id: 'f5', homeTeam: 'Galatasaray', awayTeam: 'Fenerbahce', homeFlag: '🇹🇷', awayFlag: '🇹🇷', league: 'Super Lig', country: 'Turkey', date: '2026-07-02', time: '20:00', odds: { home: 2.00, draw: 3.40, away: 3.50 }, isLive: false, minute: null, score: null },
+    ];
+  }
+
+  function getFallbackMatches() {
+    return [
+      { id: 'm1', homeTeam: 'Arsenal', awayTeam: 'Chelsea', league: 'Premier League', country: 'England', countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', date: '2026-07-02', time: '15:00', odds: { home: 1.80, draw: 3.70, away: 4.20 }, isLive: false, sport: 'football' },
+      { id: 'm2', homeTeam: 'Tottenham', awayTeam: 'Manchester United', league: 'Premier League', country: 'England', countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', date: '2026-07-02', time: '17:30', odds: { home: 2.40, draw: 3.30, away: 2.80 }, isLive: false, sport: 'football' },
+      { id: 'm3', homeTeam: 'Atletico Madrid', awayTeam: 'Sevilla', league: 'La Liga', country: 'Spain', countryFlag: '🇪🇸', date: '2026-07-02', time: '19:00', odds: { home: 1.55, draw: 4.00, away: 5.50 }, isLive: false, sport: 'football' },
+      { id: 'm4', homeTeam: 'RB Leipzig', awayTeam: 'Bayer Leverkusen', league: 'Bundesliga', country: 'Germany', countryFlag: '🇩🇪', date: '2026-07-02', time: '18:30', odds: { home: 2.60, draw: 3.40, away: 2.55 }, isLive: true, minute: 34, score: { home: 1, away: 0 }, sport: 'football' },
+      { id: 'm5', homeTeam: 'Inter Milan', awayTeam: 'Napoli', league: 'Serie A', country: 'Italy', countryFlag: '🇮🇹', date: '2026-07-03', time: '20:45', odds: { home: 1.85, draw: 3.60, away: 3.90 }, isLive: false, sport: 'football' },
+      { id: 'm6', homeTeam: 'Galatasaray', awayTeam: 'Fenerbahce', league: 'Super Lig', country: 'Turkey', countryFlag: '🇹🇷', date: '2026-07-02', time: '20:00', odds: { home: 2.00, draw: 3.40, away: 3.50 }, isLive: false, sport: 'football' },
+      { id: 'm7', homeTeam: 'LA Lakers', awayTeam: 'Boston Celtics', league: 'NBA', country: 'USA', countryFlag: '🇺🇸', date: '2026-07-02', time: '02:00', odds: { home: 1.75, draw: null, away: 2.10 }, isLive: false, sport: 'basketball' },
+    ];
+  }
 
   const filteredMatches = computed(() => {
     let result = matches.value;
 
-    if (selectedSport.value !== 'all') {
+    if (selectedSport.value && selectedSport.value !== 'all') {
       result = result.filter(m => m.sport === selectedSport.value);
     }
 
@@ -350,10 +220,20 @@ export const useSportsStore = defineStore('sports', () => {
 
   function selectSport(sportId) {
     selectedSport.value = sportId;
+    fetchMatches();
   }
 
   function setTimeFilter(filter) {
     selectedTimeFilter.value = filter;
+    fetchMatches();
+  }
+
+  async function init() {
+    await Promise.all([
+      fetchSports(),
+      fetchFeaturedMatches(),
+      fetchMatches(),
+    ]);
   }
 
   return {
@@ -364,11 +244,19 @@ export const useSportsStore = defineStore('sports', () => {
     sports,
     featuredMatches,
     matches,
+    liveMatches,
+    loading,
+    error,
     filteredMatches,
     matchesByCountry,
     toggleFavorite,
     isFavorite,
     selectSport,
     setTimeFilter,
+    fetchSports,
+    fetchFeaturedMatches,
+    fetchMatches,
+    fetchLiveMatches,
+    init,
   };
 });

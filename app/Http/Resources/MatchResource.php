@@ -11,6 +11,7 @@ class MatchResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'api_id' => $this->api_id,
             'league_id' => $this->league_id,
             'home_team' => $this->home_team,
             'away_team' => $this->away_team,

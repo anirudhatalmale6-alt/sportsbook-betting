@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BetController;
 use App\Http\Controllers\Api\MatchController;
+use App\Http\Controllers\Api\OddsController;
 use App\Http\Controllers\Api\SportController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\Admin\DashboardController as AdminDashboardController;
@@ -25,8 +26,13 @@ Route::get('/sports/{sport}', [SportController::class, 'show']);
 
 Route::get('/matches', [MatchController::class, 'index']);
 Route::get('/matches/live', [MatchController::class, 'live']);
+Route::get('/matches/upcoming', [MatchController::class, 'upcoming']);
 Route::get('/matches/featured', [MatchController::class, 'featured']);
 Route::get('/matches/{id}', [MatchController::class, 'show']);
+
+// Odds API - public
+Route::get('/odds/sports', [OddsController::class, 'getSports']);
+Route::get('/odds/events/{eventId}', [OddsController::class, 'getEventOdds']);
 
 /*
 |--------------------------------------------------------------------------
@@ -115,4 +121,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // League Management
     Route::apiResource('/leagues', AdminLeagueController::class);
+
+    // Odds API - admin actions
+    Route::post('/odds/refresh', [OddsController::class, 'refreshOdds']);
 });

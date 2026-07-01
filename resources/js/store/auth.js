@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import axios from 'axios';
+
+const API_BASE = '/api';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
@@ -12,29 +15,32 @@ export const useAuthStore = defineStore('auth', () => {
   const formattedBalance = computed(() => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: user.value?.currency ?? 'EUR',
+      currency: 'EUR',
       minimumFractionDigits: 2,
     }).format(balance.value);
   });
+
+  function setAuthHeader() {
+    if (token.value) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }
 
   async function login(credentials) {
     loading.value = true;
     error.value = null;
     try {
-      // Simulated API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const { data } = await axios.post(`${API_BASE}/auth/login`, {
+        login: credentials.email || credentials.username,
+        password: credentials.password,
+      });
 
-      // Demo user
-      token.value = 'demo-token-' + Date.now();
-      user.value = {
-        id: 1,
-        username: credentials.username || 'Player1',
-        email: credentials.email || 'player@example.com',
-        balance: 1250.00,
-        currency: 'EUR',
-        avatar: null,
-      };
+      token.value = data.token;
+      user.value = data.user;
       localStorage.setItem('auth_token', token.value);
+      setAuthHeader();
     } catch (e) {
       error.value = e.response?.data?.message || 'Login failed';
       throw e;
@@ -47,48 +53,65 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true;
     error.value = null;
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      token.value = 'demo-token-' + Date.now();
-      user.value = {
-        id: 2,
+      const { data: res } = await axios.post(`${API_BASE}/auth/register`, {
         username: data.username,
         email: data.email,
-        balance: 0.00,
-        currency: 'EUR',
-        avatar: null,
-      };
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+      });
+
+      token.value = res.token;
+      user.value = res.user;
       localStorage.setItem('auth_token', token.value);
+      setAuthHeader();
     } catch (e) {
-      error.value = e.response?.data?.message || 'Registration failed';
+      error.value = e.response?.data?.message || e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(', ') : 'Registration failed';
       throw e;
     } finally {
       loading.value = false;
     }
   }
 
-  function logout() {
-    user.value = null;
-    token.value = null;
-    localStorage.removeItem('auth_token');
+  async function logout() {
+    try {
+      if (token.value) {
+        await axios.post(`${API_BASE}/auth/logout`);
+      }
+    } catch {
+      // ignore logout errors
+    } finally {
+      user.value = null;
+      token.value = null;
+      localStorage.removeItem('auth_token');
+      setAuthHeader();
+    }
   }
 
   async function fetchUser() {
     if (!token.value) return;
+    setAuthHeader();
     try {
-      // Demo: restore session
-      user.value = {
-        id: 1,
-        username: 'Player1',
-        email: 'player@example.com',
-        balance: 1250.00,
-        currency: 'EUR',
-        avatar: null,
-      };
+      const { data } = await axios.get(`${API_BASE}/auth/me`);
+      user.value = data.data || data.user || data;
     } catch {
       logout();
     }
   }
+
+  async function refreshBalance() {
+    if (!token.value) return;
+    try {
+      const { data } = await axios.get(`${API_BASE}/user/balance`);
+      if (user.value) {
+        user.value.balance = data.data?.balance ?? data.balance;
+      }
+    } catch {
+      // silent fail
+    }
+  }
+
+  // Initialize auth header on store creation
+  setAuthHeader();
 
   return {
     user,
@@ -102,5 +125,6 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     fetchUser,
+    refreshBalance,
   };
 });

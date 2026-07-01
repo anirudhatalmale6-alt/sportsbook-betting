@@ -54,7 +54,7 @@
         :class="['sport-item', { active: sportsStore.selectedSport === sport.id }]"
       >
         <span class="sport-icon">{{ sport.icon }}</span>
-        <span class="flex-1 truncate">{{ $t(`sports.${sport.id}`) }}</span>
+        <span class="flex-1 truncate">{{ sportLabel(sport) }}</span>
         <button
           @click.stop="sportsStore.toggleFavorite(sport.id)"
           class="text-accent-gold hover:scale-110 transition-transform"
@@ -79,7 +79,7 @@
       :class="['sport-item group', { active: sportsStore.selectedSport === sport.id }]"
     >
       <span class="sport-icon">{{ sport.icon }}</span>
-      <span class="flex-1 truncate">{{ $t(`sports.${sport.id}`) }}</span>
+      <span class="flex-1 truncate">{{ sportLabel(sport) }}</span>
       <button
         @click.stop="sportsStore.toggleFavorite(sport.id)"
         :class="[
@@ -98,10 +98,17 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useSportsStore } from '../../store/sports';
 
 const sportsStore = useSportsStore();
 const showDatePicker = ref(false);
+const { t, te } = useI18n();
+
+function sportLabel(sport) {
+  const key = `sports.${sport.id}`;
+  return te(key) ? t(key) : sport.name;
+}
 
 const favoriteSports = computed(() => {
   return sportsStore.sports.filter(s => sportsStore.isFavorite(s.id));

@@ -276,6 +276,56 @@
   .hamburger-line {
     @apply block w-5 h-0.5 bg-gray-300 transition-all duration-200;
   }
+
+  /* === Live page styles === */
+
+  /* Top tabs (A-Z | Live | Search | Bets) */
+  .live-top-tab {
+    @apply px-4 py-2.5 text-sm font-medium text-gray-400 hover:text-white
+           transition-colors relative cursor-pointer;
+  }
+
+  .live-top-tab.active {
+    @apply text-primary-400;
+  }
+
+  .live-top-tab.active::after {
+    content: '';
+    @apply absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary-500 rounded-full;
+  }
+
+  /* Sport selector pills (with counts) */
+  .live-sport-pill {
+    @apply flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg
+           text-gray-400 hover:text-white hover:bg-dark-400/50
+           cursor-pointer transition-all duration-150 flex-shrink-0 min-w-[44px];
+  }
+
+  .live-sport-pill.active {
+    @apply text-primary-400 bg-primary-600/15;
+  }
+
+  /* Live match row */
+  .live-match-row {
+    @apply px-2 sm:px-3 py-2.5 bg-dark-700/40 border-b border-dark-400/15
+           hover:bg-dark-600/50 transition-colors cursor-pointer;
+  }
+
+  /* Live odds button */
+  .live-odds-btn {
+    @apply flex items-center justify-center w-12 sm:w-14 py-1.5 rounded
+           text-xs sm:text-sm font-semibold text-primary-400
+           bg-dark-400/40 hover:bg-dark-400/70
+           transition-all duration-150 cursor-pointer select-none;
+  }
+
+  .live-odds-btn.active {
+    @apply bg-primary-700/50 text-white;
+  }
+
+  .live-odds-btn.locked {
+    @apply cursor-default bg-dark-400/20;
+  }
 }
 
 @layer utilities {

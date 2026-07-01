@@ -9,8 +9,7 @@ const routes = [
   {
     path: '/live',
     name: 'live',
-    component: () => import('../views/sports/Home.vue'),
-    meta: { liveOnly: true },
+    component: () => import('../views/sports/Live.vue'),
   },
   {
     path: '/sport',

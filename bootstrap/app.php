@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => AdminMiddleware::class,
         ]);
 
+        $middleware->trustProxies(at: '*');
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
